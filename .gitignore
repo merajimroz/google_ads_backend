@@ -1,2 +1,4 @@
 api/client_secret.json
 db.sqlite3
+*.pyc
+__pycache__

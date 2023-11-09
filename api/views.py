@@ -13,7 +13,9 @@
 # limitations under the License.
 
 from contextlib import nullcontext
+import json
 from json.decoder import JSONDecoder
+from rest_framework.response import Response
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
 from .models import Article, AdWordsCredentials, RefreshToken, NewAccountCustomerID
@@ -107,13 +109,14 @@ def authenticate(request):
 
         # get the url to redirect the user so they can authenticate and authorize your app
         authorization_url = connect()[0]
-
-
         passthrough_val = connect()[1]
-        
-        response = HttpResponse(authorization_url)
-        response.headers['url'] = authorization_url
-        response.headers['passthrough_val'] = passthrough_val
+
+        data = {
+            'url': authorization_url,
+            'passthrough_val': passthrough_val
+        }
+
+        response = HttpResponse(json.dumps(data, indent=2), status=status.HTTP_200_OK)
 
         # return the authorization_url that will be used on the FE to redirect user
         # and user will authenticate themselves and authorize your app permissions

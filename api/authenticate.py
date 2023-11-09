@@ -18,7 +18,7 @@ import os
 from google_auth_oauthlib.flow import Flow
 
 
-_REDIRECT_URI = f"http://localhost:3000/"
+_REDIRECT_URI = f"https://adlfare.allegiantglobal.io:3000/"
 
 
 def connect():
@@ -66,6 +66,7 @@ def get_token(google_access_code):
     # Use the env variable that has the path to the client_secret.json file
     GOOGLE_CLIENT_SECRET_PATH = os.environ.get("GOOGLE_CLIENT_SECRET_PATH", None)
     client_secrets_path = GOOGLE_CLIENT_SECRET_PATH
+    print(client_secrets_path)
     # And also add the scopes (info) you want to retrieve from your users
     scopes = [
         'https://www.googleapis.com/auth/adwords',              # for Google Ads
@@ -77,5 +78,7 @@ def get_token(google_access_code):
     # Pass the code back into the OAuth module to get a refresh token.
     flow.fetch_token(code=google_access_code)
     refresh_token = flow.credentials.refresh_token
+
+    print("Refresh Token", refresh_token)
 
     return refresh_token

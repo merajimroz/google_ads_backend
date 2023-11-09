@@ -25,6 +25,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()  # take environment variables from .env.
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,7 +42,7 @@ SECRET_KEY = 'django-insecure-r!nck!cb+wn(@#udb!end!l!^@-4__s85=54n_n2^x)(3o2ujn
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -70,7 +73,16 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://adflare.allegiantglobal.io:3000",
+    "http://adflare.allegaintglobal.io"
 ]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://adflare.allegiantglobal.io:3000",
+    "http://adflare.allegaintglobal.io"
+]
+
+# APPEND_SLASH=False
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -146,3 +158,11 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+CORS_ALLOW_PRIVATE_NETWORK = True

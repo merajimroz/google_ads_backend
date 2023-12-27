@@ -142,7 +142,7 @@ def list_accounts(refresh_token):
                             print(f"\t\tOn field: {field_path_element.field_name}")
 
         json.dumps(customer_data)
-        print(customer_data)
+        print("Customer Data", customer_data)
 
         return customer_data
     

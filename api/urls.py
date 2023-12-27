@@ -41,7 +41,8 @@ from .views import (
     edit_ad_schedule_campaign,
     link_accounts,
     get_negative_keyword_themes,
-    edit_negative_keyword_themes
+    edit_negative_keyword_themes,
+    test_create_campaign_smart
     )
 from rest_framework.routers import DefaultRouter
 

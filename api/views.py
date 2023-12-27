@@ -128,6 +128,7 @@ def authenticate(request):
 def callback(request):
     if request.method == 'POST':
         serializer = AntiForgeryTokenSerializer(data=request.data)
+        print("Get Token Request of callback method", request.data)
         if serializer.is_valid():
             # save the data into the AntiForgeryToken model
             serializer.save()
@@ -183,12 +184,8 @@ def list_ads_accounts(request):
             # call the function to get the list of accounts
             if refresh_token is not None:
                 list_of_accounts = list_accounts(refresh_token)
-
-            # response = HttpResponse(list_of_accounts)
-            response = JsonResponse(list_of_accounts, safe=False)
-           
-            return response
-        return Response(data="bad request")
+                return Response(data=list_of_accounts, status=status.HTTP_200_OK)
+        return Response(data="bad request", status=status.HTTP_400_BAD_REQUEST)
 
 
 # Lookup for the refresh token when user signs in.
@@ -298,6 +295,7 @@ def search_token(request):
 def get_campaigns(request):
     if request.method == 'POST':
         serializer = ReportingSerializer(data=request.data)
+        print("Request Data to get Campaigns Information", request.data)
         if serializer.is_valid():
             serializer.save()
             print('ReportingSerializer is valid')
@@ -340,12 +338,12 @@ def get_campaigns(request):
                 customer_id, 
                 date_range,
                 use_login_id)
-            print(get_campaign_info)
+            print("Campaign Info", get_campaign_info)
 
             response = JsonResponse(get_campaign_info, safe=False)
            
             return response
-        return Response(data="bad request")
+        return Response(data=None)
 
 
 # Get keyword themes recommendations
@@ -558,7 +556,6 @@ def create_google_ads_account(request):
                 serializer2 = NewAccountCustomerIDSerializer(data=cust_id_data)
                 if serializer2.is_valid():
                     serializer2.save()
-
 
             response = JsonResponse(customer_id, safe=False)
            
@@ -1798,3 +1795,61 @@ def edit_negative_keyword_themes(request):
            
             return response
         return Response(data="bad request")
+
+from api.create_campaign import TestCreateSmartCampaign
+from api.chatgpt_campaign import create_campaign
+from api.serializers import TestCreateSmartCampaignSerializer
+# Edit negative keyword themes for smart campaign
+# API endpoint 'api/test-create-campaign/'
+@api_view(['POST', 'GET'])
+def test_create_campaign_smart(request):
+    if request.method == 'POST':
+        print("In test create campaign", request.data)
+        serializer = TestCreateSmartCampaignSerializer(data=request.data)
+        if serializer.is_valid():
+            print('TestCreateSmartCampaignSerializer is valid')
+            # get the token associated with that user
+            mytoken = serializer['mytoken'].value
+
+            '''
+            Get the refresh token.
+            If there is no refresh token
+            it means it is a user that we created the Ads account for them.
+            Therefore, use login_customer_id in the headers of API calls,
+            and use the app's refresh token.
+            If there is a refresh token, use it.
+            '''
+            user_credential = get_refresh_token(mytoken)
+            print("user_credential:")
+            print(user_credential)
+            
+            if user_credential is None:
+                GOOGLE_REFRESH_TOKEN = os.environ.get("GOOGLE_REFRESH_TOKEN", None)
+                refresh_token = GOOGLE_REFRESH_TOKEN
+                use_login_id = True
+                print('no refresh token so using the app')
+            else: 
+                refresh_token = user_credential
+                use_login_id = False
+                print('found a refresh token')
+
+            # get the customer_id
+            login_customer_id = os.environ.get('GOOGLE_LOGIN_CUSTOMER_ID')
+
+            # keyword_text = request.data.get('keyword_text')
+            # free_form_text = request.data.get('free_form_text')
+
+            business_profile_location = os.environ.get('BUSINESS_LOCATION_ID')
+            business_profile_name= os.environ.get('BUSINESS_PROFILE_NAME')
+
+            create_campaign("1450764346", use_login_id, refresh_token)
+            # TestCreateSmartCampaign(
+            #     refresh_token,
+            #     login_customer_id,
+            #     'hotel',
+            #     'night',
+            #     f'locations/{business_profile_location}',
+            #     business_profile_name,
+            #     use_login_id)
+            return Response(status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_400_BAD_REQUEST)

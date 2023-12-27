@@ -47,6 +47,7 @@ def business_profile(refresh_token):
         https://developers.google.com/my-business/reference/accountmanagement/rest
         '''
         # start the service
+        print("sTep 2 - ")
         service = build(
             'mybusinessaccountmanagement',      # serviceName
             'v1',                               # version

@@ -276,3 +276,10 @@ class LinkToManagerSerializer(serializers.ModelSerializer):
             'customer_id'
             ]
 
+from api.models import TestCreateCampaignModel
+class TestCreateSmartCampaignSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TestCreateCampaignModel
+        fields = [
+            'mytoken',
+        ] 

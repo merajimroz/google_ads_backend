@@ -408,3 +408,15 @@ class LinkToManager(models.Model):
 
     def __str__(self): 
         return self.mytoken, self.refreshToken, self.customer_id 
+
+
+# Testing External code to create campaign
+class TestCreateCampaignModel(models.Model):
+    mytoken = models.CharField(max_length=500)
+    refreshToken = models.CharField(max_length=500)
+    
+    login_customer_id = models.CharField(max_length=500)
+    keyword_text = models.CharField(max_length=2500)
+    free_form_text = models.CharField(max_length=5000)
+    business_location_id = models.CharField(max_length=500)
+    business_profile_name = models.CharField(max_length=500)

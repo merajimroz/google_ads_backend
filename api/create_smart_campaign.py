@@ -57,7 +57,7 @@ def create_smart(
             "refresh_token": refresh_token,
             "client_id": GOOGLE_CLIENT_ID,
             "client_secret": GOOGLE_CLIENT_SECRET,
-            # "login_customer_id": GOOGLE_LOGIN_CUSTOMER_ID,
+            "login_customer_id": GOOGLE_LOGIN_CUSTOMER_ID, # This was commented before my uncommented
             "linked_customer_id": customer_id,
             "use_proto_plus": True}
 
@@ -188,7 +188,7 @@ def create_smart(
         """
         mutate_operation = client.get_type("MutateOperation")
         campaign = mutate_operation.campaign_operation.create
-        campaign.name = campaign_name+' -Created using Fran Ads. This name will not appear in your ad- '+str(uuid4())
+        campaign.name = campaign_name+' -Created using Adflare . This name will not appear in your ad- '+str(uuid4())
         # Set the campaign status as PAUSED. The campaign is the only entity in
         # the mutate request that should have its' status set.
         campaign.status = client.enums.CampaignStatusEnum.ENABLED

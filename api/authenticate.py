@@ -18,7 +18,7 @@ import os
 from google_auth_oauthlib.flow import Flow
 
 
-_REDIRECT_URI = f"https://adlfare.allegiantglobal.io:3000/"
+_REDIRECT_URI = f"https://adflare.allegiantglobal.io"
 
 
 def connect():
@@ -70,7 +70,13 @@ def get_token(google_access_code):
     # And also add the scopes (info) you want to retrieve from your users
     scopes = [
         'https://www.googleapis.com/auth/adwords',              # for Google Ads
-        'https://www.googleapis.com/auth/business.manage']      # for Google My Business
+        'https://www.googleapis.com/auth/business.manage'      # for Google My Business
+    ]
+    # scopes = [
+    #     'https://www.googleapis.com/auth/userinfo.profile',
+    #     'https://www.googleapis.com/auth/adwords',
+    #     'https://www.googleapis.com/auth/business.manage'
+    # ]
     flow = Flow.from_client_secrets_file(client_secrets_path, scopes=scopes)
     # Specify again the redirect_uri because it's required by Flow
     flow.redirect_uri = _REDIRECT_URI

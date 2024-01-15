@@ -6,11 +6,7 @@ def get_campaigns(customer_id, access_token):
     records = []
 
     query = """
-        SELECT
-          campaign.id,
-          campaign.name
-        FROM campaign
-        ORDER BY campaign.id"""
+        SELECT campaign.id, campaign.name, campaign.status,  campaign.advertising_channel_type FROM campaign"""
 
     url = f'{os.environ.get("GOOGLE_REST_INTERFACE_API_URL")}/customers/{customer_id}/googleAds:search'
 
@@ -26,11 +22,15 @@ def get_campaigns(customer_id, access_token):
                 f"Campaign with ID {campaign.get('id')} and name "
                 f"{campaign.get('name')} was found."
             )
-            records.append({
-                'campaignId': campaign.get('id'),
-                'campaignName': campaign.get('name')
-            })
+            status = campaign.get('status')
 
+            if status in ['ENABLED', 'PAUSED']:
+                records.append({
+                    'campaignId': campaign.get('id'),
+                    'campaignName': campaign.get('name'),
+                    'status': campaign.get('status'),
+                    'advertisingChannelType': campaign.get('advertisingChannelType')
+                })
         return records
     
     else:

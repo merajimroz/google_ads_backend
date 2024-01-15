@@ -1,8 +1,9 @@
 import pandas as pd
 
 def google_ads_with_excel(file):
+    print(file)
 
-    df = pd.read_excel(file)
+    df = pd.read_excel(file, engine='openpyxl')
     data = df.to_dict()
 
     processed_data = []
@@ -12,4 +13,6 @@ def google_ads_with_excel(file):
             processed_item[key] = data[key][i]
         processed_data.append(processed_item)
 
+    print(processed_data)
     return processed_data
+

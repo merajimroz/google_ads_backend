@@ -27,13 +27,14 @@ def get_adgroups(customer_id, access_token, campaign_id):
                 f"Adgroup with ID {adgroup.get('id')} and name "
                 f"{adgroup.get('name')} was found."
             )
-            records.append({
-                'id': adgroup.get('id'),
-                'name': adgroup.get('name'),
-                "status": adgroup.get('status'),
-                'type': adgroup.get('type')
-            })
-
+            status = adgroup.get('status')
+            if status in ['PAUSED', 'ENABLED']:
+                records.append({
+                    'id': adgroup.get('id'),
+                    'name': adgroup.get('name'),
+                    "status": adgroup.get('status'),
+                    'type': adgroup.get('type')
+                })
         return records
     
     else:

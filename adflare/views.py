@@ -2,6 +2,7 @@ import os
 import uuid
 from datetime import datetime, timedelta
 import pandas as pd
+import zipfile
 import io
 from django.http import HttpResponse
 import xlsxwriter
@@ -27,6 +28,7 @@ from adflare.api.adgroups.add_ad_groups import add_adgroups, ad_group_for_respon
 from adflare.api.adgroups.get_ad_groups import get_adgroups
 from adflare.api.ads.dynamic_search_ads import dynamic_search_ad
 from adflare.api.ads.responsive_search_ads import responsive_search_ad
+from adflare.api.ads.responsive_display_ads import responsive_display_ad
 from adflare.api.ads.get_search_ads import get_google_dynamic_search_ads
 from adflare.api.account_management.get_account_hierachy import get_account_list
 from adflare.serializers import CreateSmartCampaignSerializer, AdGroupSerializer, LoginUserSerializer, GoogleAuthSerializer
@@ -37,11 +39,11 @@ from adflare.api.google_ads_with_excel import google_ads_with_excel
 CLIENT_ID = '2215958043'
 CAMPAIGN_ID = '20856085585'
 MANAGER_ID = os.environ.get('GOOGLE_LOGIN_CUSTOMER_ID')
-REFRESH_TOKEN = '1//0gUY_vUaclG6uCgYIARAAGBASNwF-L9IrqeT2Gv8WHB92LKtd2YyFjd6RvDXG5vX4heb4jxD9qm3azC5fsPdIZvxsgUY3vNGpemQ'
+REFRESH_TOKEN = '1//0gFBa_6VFVpKqCgYIARAAGBASNwF-L9IrCiRTzF5bkPDdzR0nUSAIEFRDx1ROleR6DHAWSa_YKg5nMpEjN7iJ39JdjcbVQXujFO4'
 
 
 lifetime_of_access_token = datetime.now() + timedelta(minutes=60)
-access_token = 'ya29.a0AfB_byDRtSMoEoQOyliEUz2S4c9kT8Jdm_7ViFswW1KGdvCxGw1yP8-Z_mXKxGZ80PPFgs-ZzOsbbmTQQNaRKP_M8dX0YjabByaAipW3-Yn_SUdWv9a-DWBQEGbUx_UpG10HMXiXmYfzkGzlyxDYfmA2Gitz_8eNiTpoyAaCgYKAQQSARASFQHGX2MiE-N1CutNi_sW5VHzK-_PFw0173'
+access_token = None
 
 def google_access_token(refresh_token):
 
@@ -389,17 +391,40 @@ def excel_sheet_to_create_google_ads_view(request):
     '''
 
     try:
-        file = request.data.get('file')
-        processed_data = google_ads_with_excel(file)
-
+        type_of_ad  = request.GET.get('type')
         client = configure_credentials(REFRESH_TOKEN)
-        if processed_data:
-            for each_ad_data in processed_data:
-                customer_id = str(each_ad_data.get('customer_id'))
-                ad_group_id = str(each_ad_data.get('adgroup_id'))
-                responsive_search_ad(client, customer_id, ad_group_id, each_ad_data)
+        if type_of_ad == 'SEARCH_STANDARD':
+            file = request.data.get('file')
+            processed_data = google_ads_with_excel(file)
+            if processed_data:
+                for each_ad_data in processed_data:
+                    customer_id = str(each_ad_data.get('customer_id'))
+                    ad_group_id = str(each_ad_data.get('adgroup_id'))
+                    responsive_search_ad(client, customer_id, ad_group_id, each_ad_data)
+                return Response(status=status.HTTP_200_OK)
+        
+        if type_of_ad == 'DISPLAY_STANDARD':
+            zip_file = request.FILES['file']
+            with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+                # Extract the contents to a temporary directory
+                zip_ref.extractall('assets')
 
-        return Response(status=status.HTTP_200_OK)
+            # Process the extracted files or data here
+            # For example, print the names of extracted files
+            with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+                
+                dir = zip_ref.namelist()[0].split('/')[0]
+                file_path = f'/var/www/adflaredev/backend/google_ads_backend/assets/{dir}/ads_template.xlsx'
+                processed_data = google_ads_with_excel(file_path)
+                if processed_data:
+                    for each_ad_data in processed_data:
+                        customer_id = str(each_ad_data.get('customer_id'))
+                        ad_group_id = str(each_ad_data.get('adgroup_id'))
+                        ad_group_resource_name = f'customers/{customer_id}/adGroups/{ad_group_id}'
+                        responsive_display_ad(client, customer_id, each_ad_data, ad_group_resource_name, dir)
+                    return Response(status=status.HTTP_200_OK)
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     except Exception as ex:
         return Response(data=str(ex), status=status.HTTP_400_BAD_REQUEST)
 
@@ -409,26 +434,40 @@ def excel_sheet_to_create_google_ads_view(request):
 def template_for_excel_ads_with_io_view(request):
     output = io.BytesIO()
 
-     
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
 
+    type_of_ad  = request.GET.get('type')
     customer_id = request.data.get('customerId')
     ad_group_id = request.data.get('adGroupId')
     campaign_id = request.data.get('campaignId')
 
-    data = [['customer_id', 'ad_group_id', 'campaign_id', 'final_url', 
-               'headline1', 'headline2', 'headline3', 
-               'description1', 'description2', 'path1',
-               'path2', 'type_of_ad'], [customer_id, ad_group_id, campaign_id, '', 
-               '', '', '', 
-               '', '', '',
-               '', '']]
-    
-    for row_num, col in enumerate(data):
-        for col_num, cell_data in enumerate(col):
-            worksheet.write(row_num, col_num, cell_data)
+    print(type_of_ad)
+    if type_of_ad == 'SEARCH_STANDARD':
+        data = [['customer_id', 'adgroup_id', 'campaign_id', 'final_url', 
+                'headline1', 'headline2', 'headline3', 
+                'description1', 'description2', 'path1',
+                'path2', 'type_of_ad'], [customer_id, ad_group_id, campaign_id, '', 
+                '', '', '', 
+                '', '', '',
+                '', 'SEARCH']]
+        
+        for row_num, col in enumerate(data):
+            for col_num, cell_data in enumerate(col):
+                worksheet.write(row_num, col_num, cell_data)
 
+    if type_of_ad == 'DISPLAY_STANDARD':
+        data = [['customer_id', 'adgroup_id', 'campaign_id', 'url', 'business_name',
+                 'long_headline', 'headline1', 'headline2', 'description1', 'description2', 
+                 'image_1', 'image_2','video_id', 'video_title','type_of_ad'], 
+                 [customer_id, ad_group_id, campaign_id, '', '',
+                '', '', '', '' ,'', '',
+                '', '', '','DISPLAY_STANDARAD']]
+        
+        for row_num, col in enumerate(data):
+            for col_num, cell_data in enumerate(col):
+                worksheet.write(row_num, col_num, cell_data)
+                
     # Close the workbook before sending the data.
     workbook.close()
 
